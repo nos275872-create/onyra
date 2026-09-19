@@ -46,17 +46,38 @@ SHANWAN_MAPPING = (
 )
 
 
+def _force_kill(proc: subprocess.Popen, is_wine: bool) -> None:
+    """Garantiza que el proceso del juego (y su grupo) muere pase lo que pase."""
+    if proc.poll() is not None:
+        return
+    try:
+        pgid = os.getpgid(proc.pid)
+        os.killpg(pgid, signal.SIGTERM)
+    except Exception:
+        try:
+            proc.terminate()
+        except Exception:
+            pass
+    try:
+        proc.wait(timeout=2.0)
+    except subprocess.TimeoutExpired:
+        try:
+            pgid = os.getpgid(proc.pid)
+            os.killpg(pgid, signal.SIGKILL)
+        except Exception:
+            try:
+                proc.kill()
+            except Exception:
+                pass
+        try:
+            proc.wait(timeout=2.0)
+        except Exception:
+            pass
+    if is_wine:
+        subprocess.run(["wineserver", "-k"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
 def _watch_process_and_q_key(proc: subprocess.Popen, is_wine: bool = False) -> None:
-    """
-    Lee los teclados físicos directamente por evdev en paralelo a la ejecución del juego.
-    Vigila exclusivamente la tecla Q.
-    Si se mantiene pulsada Q durante 1.0 segundo continuo:
-      1. Envía SIGTERM a todo el grupo de procesos (proc.terminate() / killpg).
-      2. Espera hasta 2 segundos con proc.wait(timeout=2).
-      3. Si sigue vivo, envía SIGKILL (proc.kill()).
-      4. Si es Wine (Commandos), ejecuta wineserver -k para asegurar que no queda servidor zombi.
-    Si el proceso termina por sí solo antes, el bucle finaliza limpiamente.
-    """
     keyboards = []
     try:
         import evdev
@@ -64,9 +85,8 @@ def _watch_process_and_q_key(proc: subprocess.Popen, is_wine: bool = False) -> N
             try:
                 dev = evdev.InputDevice(path)
                 caps = dev.capabilities()
-                if evdev.ecodes.EV_KEY in caps:
-                    if evdev.ecodes.KEY_Q in caps[evdev.ecodes.EV_KEY]:
-                        keyboards.append(dev)
+                if evdev.ecodes.EV_KEY in caps and evdev.ecodes.KEY_Q in caps[evdev.ecodes.EV_KEY]:
+                    keyboards.append(dev)
             except Exception:
                 pass
     except Exception:
@@ -77,54 +97,53 @@ def _watch_process_and_q_key(proc: subprocess.Popen, is_wine: bool = False) -> N
     try:
         while proc.poll() is None:
             if keyboards:
-                r, _, _ = select.select(keyboards, [], [], 0.05)
-                for dev in r:
-                    try:
+                try:
+                    r, _, _ = select.select(keyboards, [], [], 0.05)
+                    for dev in r:
                         for ev in dev.read():
                             if ev.type == evdev.ecodes.EV_KEY and ev.code == evdev.ecodes.KEY_Q:
-                                if ev.value == 1:  # Tecla Q presionada
-                                    if q_press_start is None:
-                                        q_press_start = time.monotonic()
-                                elif ev.value == 0:  # Tecla Q soltada
+                                if ev.value == 1 and q_press_start is None:
+                                    q_press_start = time.monotonic()
+                                elif ev.value == 0:
                                     q_press_start = None
+                except OSError:
+                    # Dispositivo reenumerado/perdido: recargar lista y seguir vigilando,
+                    # NUNCA salir del bucle dejando el proceso vivo sin matar.
+                    for dev in keyboards:
+                        try:
+                            dev.close()
+                        except Exception:
+                            pass
+                    keyboards = []
+                    try:
+                        import evdev
+                        for path in evdev.list_devices():
+                            try:
+                                dev = evdev.InputDevice(path)
+                                caps = dev.capabilities()
+                                if evdev.ecodes.EV_KEY in caps and evdev.ecodes.KEY_Q in caps[evdev.ecodes.EV_KEY]:
+                                    keyboards.append(dev)
+                            except Exception:
+                                pass
                     except Exception:
                         pass
+                    time.sleep(0.2)
+                    continue
 
-                # Comprobar si se ha mantenido durante 1.0 segundo continuo
-                if q_press_start is not None:
-                    elapsed = time.monotonic() - q_press_start
-                    if elapsed >= 1.0:
-                        # Cierre forzado seguro del grupo de procesos
-                        try:
-                            pgid = os.getpgid(proc.pid)
-                            os.killpg(pgid, signal.SIGTERM)
-                        except Exception:
-                            proc.terminate()
-
-                        try:
-                            proc.wait(timeout=2.0)
-                        except subprocess.TimeoutExpired:
-                            try:
-                                pgid = os.getpgid(proc.pid)
-                                os.killpg(pgid, signal.SIGKILL)
-                            except Exception:
-                                proc.kill()
-                            proc.wait()
-
-                        if is_wine:
-                            subprocess.run(["wineserver", "-k"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                        break
+                if q_press_start is not None and (time.monotonic() - q_press_start) >= 1.0:
+                    _force_kill(proc, is_wine)
+                    break
             else:
-                # Si no hay dispositivo evdev disponible, esperar normalmente
                 time.sleep(0.05)
+    except Exception:
+        # CUALQUIER fallo inesperado: garantizar que el juego no queda huérfano.
+        _force_kill(proc, is_wine)
     finally:
         for dev in keyboards:
             try:
                 dev.close()
             except Exception:
                 pass
-        if is_wine:
-            subprocess.run(["wineserver", "-k"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
 def launch_game(game: Dict[str, Any], restart_clean: bool = False) -> pygame.Surface:

@@ -8,7 +8,7 @@ scummvm y sdlpop antes de lanzar el juego.
 import os
 import re
 import sys
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 
 
 def update_crispy_config(path: str, settings: Dict[str, Any]) -> None:
