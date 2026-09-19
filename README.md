@@ -68,6 +68,7 @@
 │   ├── volume.py              # Gestor hardware de volumen ALSA
 │   ├── sound.py               # Generador de efectos de sonido sintetizados
 │   ├── apply_input_config.py  # Autoconfigurador de controles para Mednafen
+│   ├── apply_native_gamepad_config.py # Autoconfigurador de mando ShanWan para juegos de PC
 │   ├── mednafen_arcade.cfg    # Configuración de rendimiento de Mednafen
 │   ├── emulador.sh            # Lanzador auxiliar
 │   └── commandos_launch.sh    # Lanzador adaptativo para Commandos: Behind Enemy Lines
@@ -120,7 +121,7 @@ emulador
 | **Buscar juego** | — | Escribir letras directamente |
 | **Borrar búsqueda** | — | **BACKSPACE** |
 | **Salir de ONYRA** | Botón **SELECT** (en pantalla sistemas) | **ESCAPE** (en pantalla sistemas) |
-| **Salir del juego** | **F12** (Mednafen) / Tecla ESC | **F12** / **ESC** |
+| **Salir de cualquier juego** | Mantén pulsada **Q** durante 1 segundo | Mantén pulsada **Q** durante 1 segundo |
 
 ---
 

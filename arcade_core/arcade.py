@@ -963,16 +963,14 @@ def arcade_main(stdscr):
 
                 stdscr.addstr(cy, card_x, "ATAJOS DENTRO DEL JUEGO:", curses.color_pair(5) | curses.A_BOLD)
                 cy += 1
+                stdscr.addstr(cy, card_x, "• Salir: Mantén pulsada Q durante 1 segundo", curses.color_pair(4) | curses.A_BOLD)
+                cy += 1
                 if cur_game.get("system") == "PC Nativo":
-                    stdscr.addstr(cy, card_x, "• Salir al menú: Menú del juego / ESC o Ctrl+Q | Retorno limpio", curses.A_BOLD)
-                    cy += 1
-                    stdscr.addstr(cy, card_x, "• Guardado: Menú propio del juego (F2/F5 Guardar / F3/F7 Cargar)", curses.color_pair(4) | curses.A_BOLD)
+                    stdscr.addstr(cy, card_x, "• Guardado: Menú propio del juego (F2/F5 Guardar / F3/F7 Cargar)", curses.A_NORMAL)
                     cy += 1
                     stdscr.addstr(cy, card_x, "• Volumen: Teclas +/- o botones K400 | Mando: SELECT + R1/L1", curses.A_NORMAL)
                 else:
-                    stdscr.addstr(cy, card_x, "• Salir al menú: Tecla Q (o Mando: SELECT+START) [Autoguardado]", curses.A_BOLD)
-                    cy += 1
-                    stdscr.addstr(cy, card_x, "• Guardado: ¡Automático al salir con Q! Al volver, sigues donde lo dejaste", curses.color_pair(4) | curses.A_BOLD)
+                    stdscr.addstr(cy, card_x, "• Guardado: ¡Automático al salir con Q! Al volver, sigues donde lo dejaste", curses.A_NORMAL)
                     cy += 1
                     stdscr.addstr(cy, card_x, "• Volumen: Teclas +/- o botones K400 | Mando: SELECT + R1/L1", curses.A_NORMAL)
                     cy += 1
