@@ -229,10 +229,14 @@ class GamesView:
             return
         self.modal_active = False
         cur_game = self.filtered_games[self.selected_idx]
-        new_screen = launcher.launch_game(cur_game, restart_clean=restart_clean)
-        # Tras volver, se actualizan las dimensiones por si cambiaron
-        self.screen_w = new_screen.get_width()
-        self.screen_h = new_screen.get_height()
+        try:
+            new_screen = launcher.launch_game(cur_game, restart_clean=restart_clean)
+            if new_screen is not None:
+                # Tras volver, se actualizan las dimensiones por si cambiaron
+                self.screen_w = new_screen.get_width()
+                self.screen_h = new_screen.get_height()
+        except Exception:
+            pass
 
     def draw(self, screen: pygame.Surface) -> None:
         screen.fill(theme.COLOR_BG)

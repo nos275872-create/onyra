@@ -346,34 +346,61 @@ def launch_game(game: Dict[str, Any], restart_clean: bool = False) -> pygame.Sur
     finally:
         # Reconfigurar controles para el frontend si procede
         if apply_script and os.path.exists(apply_script):
-            subprocess.run(
-                [sys.executable, apply_script],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
+            try:
+                subprocess.run(
+                    [sys.executable, apply_script],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    timeout=3.0,
+                )
+            except Exception:
+                pass
         if volume:
-            volume.set_emulator_active(False)
+            try:
+                volume.set_emulator_active(False)
+            except Exception:
+                pass
 
         # Restaurar teclado y modo de consola del kernel
         os.system("sudo kbd_mode -u -f 2>/dev/null; stty sane 2>/dev/null")
 
-    # 3. Reapertura limpia de Pygame en KMSDRM
-    pygame.init()
-    pygame.display.init()
-    pygame.font.init()
-    pygame.mouse.set_visible(False)
+    # 3. Reapertura limpia de Pygame en KMSDRM con reintentos para evitar race condition de DRM
+    time.sleep(0.15)
+    new_screen = None
+    for attempt in range(3):
+        try:
+            pygame.init()
+            pygame.display.init()
+            pygame.font.init()
+            pygame.mouse.set_visible(False)
 
-    import theme
-    theme.reset_theme_cache()
+            import theme
+            theme.reset_theme_cache()
 
-    # Obtener el modo óptimo
-    modes = pygame.display.list_modes()
-    res = modes[0] if modes else (1920, 1080)
-    new_screen = pygame.display.set_mode(res, pygame.FULLSCREEN | pygame.DOUBLEBUF)
+            # Obtener el modo óptimo
+            modes = pygame.display.list_modes()
+            res = modes[0] if modes else (1920, 1080)
+            new_screen = pygame.display.set_mode(res, pygame.FULLSCREEN | pygame.DOUBLEBUF)
+            if new_screen is not None:
+                break
+        except Exception:
+            time.sleep(0.25)
+
+    if new_screen is None:
+        try:
+            new_screen = pygame.display.get_surface()
+        except Exception:
+            pass
 
     # 4. Pausa de estabilización y purga de eventos
-    time.sleep(0.3)
-    pygame.event.clear()
-    input_mgr.resume()
+    time.sleep(0.2)
+    try:
+        pygame.event.clear()
+    except Exception:
+        pass
+    try:
+        input_mgr.resume()
+    except Exception:
+        pass
 
     return new_screen

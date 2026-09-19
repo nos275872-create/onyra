@@ -93,6 +93,10 @@ def main():
                         systems_view.handle_input(action, char_val)
                     elif current_state == "GAMES" and games_view:
                         games_view.handle_input(action, char_val)
+                        active_surf = pygame.display.get_surface()
+                        if active_surf is not None:
+                            screen = active_surf
+                            screen_w, screen_h = screen.get_size()
 
             # Lógica de estados y transiciones
             if current_state == "BOOT":
