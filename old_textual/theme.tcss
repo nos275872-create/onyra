@@ -1,0 +1,347 @@
+/* =========================================================================
+   ONYRA - Luxury Dark Mint Neon + Violet Theme
+   Paleta:
+   - Fondo: #08090D (60%)
+   - Paneles: #0E1116 (30%)
+   - Bordes inactivos: #1D2430
+   - Menta neón (principal acento): #3DFFC0 (10%)
+   - Violeta (apoyo y glow): #9B7BFF
+   - Violeta oscuro (sombra): #4B3A99
+   - Texto principal: #E8EEF2
+   - Texto secundario: #7A8794
+   Optimizado para resoluciones desde 80x24 hasta 4K.
+   ========================================================================= */
+
+Screen {
+    background: #08090D;
+    color: #E8EEF2;
+}
+
+/* --- PANTALLA 1: BOOT --- */
+#boot-screen {
+    align: center middle;
+    width: 100%;
+    height: 100%;
+}
+
+#boot-container {
+    width: 54;
+    height: auto;
+    align: center middle;
+}
+
+#boot-logo {
+    width: 50;
+    height: 5;
+    margin-bottom: 1;
+}
+
+#boot-divider {
+    width: 48;
+    height: 1;
+    color: #1D2430;
+    margin-bottom: 0;
+}
+
+#boot-subtitle {
+    width: 48;
+    text-align: center;
+    color: #7A8794;
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+#boot-progress-container {
+    width: 48;
+    height: 1;
+    margin-top: 0;
+}
+
+#boot-progress-bar {
+    width: 100%;
+    height: 1;
+}
+
+/* --- CABECERA Y PIE COMUNES --- */
+.header-bar {
+    dock: top;
+    height: 1;
+    background: #08090D;
+    align: center middle;
+    padding: 0 1;
+}
+
+.header-title {
+    color: #3DFFC0;
+    text-style: bold;
+    text-align: center;
+}
+
+.footer-bar {
+    dock: bottom;
+    height: 1;
+    background: #08090D;
+    color: #7A8794;
+    padding: 0 1;
+    align: center middle;
+}
+
+.footer-help {
+    color: #7A8794;
+    text-align: center;
+}
+
+/* --- PANTALLA 2: SELECTOR DE SISTEMAS --- */
+#systems-container {
+    width: 100%;
+    height: 1fr;
+    align: center middle;
+    padding: 0 2;
+}
+
+#systems-grid {
+    align: center middle;
+    width: auto;
+    height: auto;
+}
+
+.system-row {
+    height: auto;
+    align: center middle;
+    margin: 0 0;
+}
+
+.system-card {
+    width: 22;
+    height: 7;
+    background: #0E1116;
+    border: round #1D2430;
+    margin: 0 1;
+    align: center middle;
+    padding: 0 1;
+}
+
+.system-card:hover {
+    border: round #4B3A99;
+}
+
+.system-card.selected {
+    border-top: round #3DFFC0;
+    border-right: round #6DB7DF;
+    border-bottom: round #9B7BFF;
+    border-left: round #6DB7DF;
+    background: #0E1116;
+}
+
+.system-logo-widget {
+    width: 18;
+    height: 4;
+    align: center middle;
+}
+
+.system-name-label {
+    text-align: center;
+    color: #7A8794;
+    text-style: bold;
+    margin-top: 0;
+}
+
+.system-card.selected .system-name-label {
+    color: #3DFFC0;
+}
+
+#system-details-box {
+    margin-top: 1;
+    align: center middle;
+    height: 2;
+}
+
+#system-info-title {
+    color: #E8EEF2;
+    text-style: bold;
+    text-align: center;
+}
+
+#system-info-count {
+    color: #9B7BFF;
+    text-align: center;
+}
+
+/* --- PANTALLA 3: LISTA DE JUEGOS --- */
+#games-container {
+    width: 100%;
+    height: 1fr;
+    layout: horizontal;
+    padding: 0 1;
+}
+
+/* Panel Izquierdo (~40%) */
+#games-list-panel {
+    width: 38%;
+    height: 100%;
+    background: #0E1116;
+    border: round #1D2430;
+    margin-right: 1;
+    padding: 0 1;
+}
+
+#games-search-box {
+    dock: top;
+    height: 3;
+    margin-bottom: 0;
+}
+
+#games-search-input {
+    background: #08090D;
+    color: #E8EEF2;
+    border: round #1D2430;
+    height: 3;
+    padding: 0 1;
+}
+
+#games-search-input:focus {
+    border: round #3DFFC0;
+}
+
+#games-list-title {
+    color: #3DFFC0;
+    text-style: bold;
+    margin-top: 0;
+    margin-bottom: 0;
+    text-align: center;
+}
+
+#games-list-view {
+    height: 1fr;
+    background: transparent;
+    scrollbar-color: #1D2430;
+    scrollbar-color-hover: #4B3A99;
+    scrollbar-color-active: #3DFFC0;
+    padding: 0;
+}
+
+ListItem {
+    padding: 0 1;
+    color: #7A8794;
+    background: transparent;
+    height: auto;
+}
+
+ListItem:hover {
+    background: #12161E;
+    color: #E8EEF2;
+}
+
+ListItem.-selected {
+    background: #141A24;
+    color: #3DFFC0;
+    text-style: bold;
+}
+
+/* Panel Derecho (~60%) */
+#game-details-panel {
+    width: 62%;
+    height: 100%;
+    background: #0E1116;
+    border: round #1D2430;
+    padding: 0 1;
+}
+
+#game-cover-container {
+    width: 100%;
+    height: 10;
+    align: center middle;
+    margin-bottom: 0;
+}
+
+#game-info-container {
+    height: 1fr;
+    overflow-y: auto;
+    scrollbar-color: #1D2430;
+}
+
+#game-title {
+    color: #E8EEF2;
+    text-style: bold;
+    margin-bottom: 0;
+    text-align: center;
+}
+
+#game-metadata {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+#game-desc-header {
+    color: #9B7BFF;
+    text-style: bold;
+    margin-top: 1;
+    margin-bottom: 0;
+}
+
+#game-desc {
+    color: #7A8794;
+    margin-top: 0;
+    margin-bottom: 1;
+}
+
+#game-controls-box {
+    margin-top: 0;
+    padding: 0 1;
+    border-top: solid #1D2430;
+    color: #7A8794;
+}
+
+/* --- DIÁLOGO MODAL: AUTOSAVE --- */
+#dialog-screen {
+    align: center middle;
+    background: rgba(8, 9, 13, 0.85);
+}
+
+#dialog-container {
+    width: 60;
+    height: auto;
+    background: #0E1116;
+    border: round #9B7BFF;
+    padding: 1 2;
+    align: center middle;
+}
+
+#dialog-title {
+    color: #9B7BFF;
+    text-style: bold;
+    text-align: center;
+    margin-bottom: 1;
+}
+
+#dialog-game-name {
+    color: #3DFFC0;
+    text-style: bold;
+    text-align: center;
+    margin-bottom: 0;
+}
+
+#dialog-timestamp {
+    color: #7A8794;
+    text-align: center;
+    margin-bottom: 1;
+}
+
+.dialog-button {
+    width: 100%;
+    margin: 1 0;
+    background: #141A24;
+    color: #E8EEF2;
+    border: round #1D2430;
+}
+
+.dialog-button:hover, .dialog-button:focus {
+    background: #1D2430;
+    color: #3DFFC0;
+    border: round #3DFFC0;
+}
+
+.dialog-button-danger:hover, .dialog-button-danger:focus {
+    color: #FF5A78;
+    border: round #FF5A78;
+}

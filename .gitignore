@@ -1,0 +1,16 @@
+# Python environment
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Local runtime state & logs
+state.json
+*.log
+
+# OS & Editor
+.DS_Store
+.vscode/
+.idea/
