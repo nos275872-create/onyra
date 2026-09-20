@@ -9,9 +9,16 @@ import curses
 import datetime
 import glob
 import os
+import select
+import signal
 import subprocess
 import sys
 import time
+
+try:
+    import evdev
+except ImportError:
+    evdev = None
 
 # Importar sintetizador de sonido arcade y gestor de volumen
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -899,6 +906,141 @@ def fb_clear():
         pass
 
 
+def _find_input_devices():
+    if not evdev:
+        return []
+    devices = []
+    try:
+        for path in evdev.list_devices():
+            try:
+                dev = evdev.InputDevice(path)
+                # Solo teclados físicos: NUNCA interceptar mandos de juego
+                name_lower = dev.name.lower()
+                if "shanwan" in name_lower or "gamepad" in name_lower or "joystick" in name_lower:
+                    continue
+                caps = dev.capabilities()
+                if evdev.ecodes.EV_KEY in caps:
+                    keys = caps[evdev.ecodes.EV_KEY]
+                    if (evdev.ecodes.KEY_Q in keys or
+                        evdev.ecodes.KEY_VOLUMEUP in keys or
+                        evdev.ecodes.KEY_VOLUMEDOWN in keys or
+                        evdev.ecodes.KEY_MUTE in keys):
+                        devices.append(dev)
+            except Exception:
+                pass
+    except Exception:
+        pass
+    return devices
+
+
+def _force_kill(proc: subprocess.Popen, is_wine_or_dos: bool) -> None:
+    """Garantiza que el proceso del juego (y su grupo) muere pase lo que pase."""
+    if proc.poll() is not None:
+        return
+    try:
+        pgid = os.getpgid(proc.pid)
+        os.killpg(pgid, signal.SIGTERM)
+    except Exception:
+        try:
+            proc.terminate()
+        except Exception:
+            pass
+    try:
+        proc.wait(timeout=2.0)
+    except subprocess.TimeoutExpired:
+        try:
+            pgid = os.getpgid(proc.pid)
+            os.killpg(pgid, signal.SIGKILL)
+        except Exception:
+            try:
+                proc.kill()
+            except Exception:
+                pass
+        try:
+            proc.wait(timeout=2.0)
+        except Exception:
+            pass
+    if is_wine_or_dos:
+        subprocess.run(["wineserver", "-k"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["killall", "-9", "dosbox"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["sudo", "killall", "-9", "Xorg"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["sudo", "pkill", "-9", "-f", "Xorg"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["sudo", "rm", "-f", "/tmp/.X1-lock", "/tmp/.X2-lock", "/tmp/.X11-unix/X1", "/tmp/.X11-unix/X2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def _watch_process_and_q_key(proc: subprocess.Popen, is_wine_or_dos: bool = False) -> None:
+    if not evdev:
+        proc.wait()
+        return
+
+    devices = _find_input_devices()
+    q_press_start = None
+    last_vol_time = 0.0
+
+    while proc.poll() is None:
+        if devices:
+            try:
+                r, _, _ = select.select(devices, [], [], 0.05)
+                for dev in r:
+                    try:
+                        for ev in dev.read():
+                            if ev.type == evdev.ecodes.EV_KEY:
+                                # 1. Pulsación de Q mantenida durante 1s para forzar salida limpia
+                                if ev.code == evdev.ecodes.KEY_Q:
+                                    if ev.value == 1 and q_press_start is None:
+                                        q_press_start = time.monotonic()
+                                    elif ev.value == 0:
+                                        q_press_start = None
+
+                                # 2. Teclas multimedia específicas de volumen del teclado
+                                elif ev.code == evdev.ecodes.KEY_VOLUMEUP and ev.value in (1, 2):
+                                    now = time.monotonic()
+                                    if now - last_vol_time >= 0.08:
+                                        if volume:
+                                            volume.set_volume_delta(+5)
+                                        else:
+                                            subprocess.run(["amixer", "set", "Master", "5%+", "unmute"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                                        last_vol_time = now
+
+                                elif ev.code == evdev.ecodes.KEY_VOLUMEDOWN and ev.value in (1, 2):
+                                    now = time.monotonic()
+                                    if now - last_vol_time >= 0.08:
+                                        if volume:
+                                            volume.set_volume_delta(-5)
+                                        else:
+                                            subprocess.run(["amixer", "set", "Master", "5%-", "unmute"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                                        last_vol_time = now
+
+                                elif ev.code == evdev.ecodes.KEY_MUTE and ev.value == 1:
+                                    if volume:
+                                        volume.toggle_mute()
+                                    else:
+                                        subprocess.run(["amixer", "set", "Master", "toggle"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    except (OSError, BlockingIOError):
+                        pass
+
+            except Exception:
+                time.sleep(0.1)
+                devices = _find_input_devices()
+                continue
+
+            # ÚNICA condición que cierra el juego: tecla Q pulsada durante 1 segundo entero
+            if q_press_start is not None and (time.monotonic() - q_press_start) >= 1.0:
+                _force_kill(proc, is_wine_or_dos)
+                break
+        else:
+            time.sleep(0.1)
+            devices = _find_input_devices()
+
+    for dev in devices:
+        try:
+            dev.close()
+        except Exception:
+            pass
+    if is_wine_or_dos:
+        _force_kill(proc, is_wine_or_dos)
+
+
 def launch_retro_game(stdscr, game):
     """Lanza el juego en Mednafen o motor nativo de PC por KMSDRM/ALSA."""
     is_native = (game.get("system") == "PC Nativo")
@@ -952,12 +1094,15 @@ def launch_retro_game(stdscr, game):
                     stderr=subprocess.DEVNULL,
                 )
 
-            subprocess.run(cmd, env=env, cwd=cwd)
+            is_wine_or_dos = ("wine" in str(cmd) or "dosbox" in str(cmd))
+            proc = subprocess.Popen(cmd, env=env, cwd=cwd, start_new_session=True)
+            _watch_process_and_q_key(proc, is_wine_or_dos=is_wine_or_dos)
         else:
             # Mednafen toma control exclusivo de la GPU/DRM y audio con SDL, autosave instantáneo
             subprocess.run([sys.executable, "/home/jcgar/arcade/apply_input_config.py"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             cmd = ["mednafen", "-ovconfig", "/home/jcgar/arcade/mednafen_arcade.cfg", "-video.driver", "softfb", "-sound.driver", "sdl", "-autosave", "1", game["rom"]]
-            subprocess.run(cmd, env=env)
+            proc = subprocess.Popen(cmd, env=env, start_new_session=True)
+            _watch_process_and_q_key(proc, is_wine_or_dos=False)
     except Exception:
         pass
     finally:
