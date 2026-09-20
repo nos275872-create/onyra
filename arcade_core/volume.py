@@ -210,6 +210,24 @@ class VolumeKeyListener:
                                         _gamepad_queue.put(260)  # KEY_LEFT
                                     elif ev.value == 1:
                                         _gamepad_queue.put(261)  # KEY_RIGHT
+                                elif ev.code == evdev.ecodes.ABS_Y:
+                                    now = time.monotonic()
+                                    if now - getattr(self, "_last_stick_y", 0.0) > 0.22:
+                                        if ev.value < -16000:
+                                            _gamepad_queue.put(259)  # KEY_UP
+                                            self._last_stick_y = now
+                                        elif ev.value > 16000:
+                                            _gamepad_queue.put(258)  # KEY_DOWN
+                                            self._last_stick_y = now
+                                elif ev.code == evdev.ecodes.ABS_X:
+                                    now = time.monotonic()
+                                    if now - getattr(self, "_last_stick_x", 0.0) > 0.28:
+                                        if ev.value < -16000:
+                                            _gamepad_queue.put(260)  # KEY_LEFT
+                                            self._last_stick_x = now
+                                        elif ev.value > 16000:
+                                            _gamepad_queue.put(261)  # KEY_RIGHT
+                                            self._last_stick_x = now
         except Exception:
             pass
 

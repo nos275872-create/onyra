@@ -79,6 +79,7 @@ class GamesView:
         self.all_games: List[Dict[str, Any]] = self.catalog.get(sys_id, [])
         self.filtered_games: List[Dict[str, Any]] = list(self.all_games)
         self.selected_idx = 0
+        self.should_exit_for_game = False
 
         # Info del sistema
         self.sys_info = next((s for s in data.SYSTEMS_INFO if s["id"] == sys_id), None)
@@ -229,14 +230,9 @@ class GamesView:
             return
         self.modal_active = False
         cur_game = self.filtered_games[self.selected_idx]
-        try:
-            new_screen = launcher.launch_game(cur_game, restart_clean=restart_clean)
-            if new_screen is not None:
-                # Tras volver, se actualizan las dimensiones por si cambiaron
-                self.screen_w = new_screen.get_width()
-                self.screen_h = new_screen.get_height()
-        except Exception:
-            pass
+        data.save_state(self.sys_id, cur_game.get("id", ""))
+        launcher.prepare_launch(cur_game, restart_clean=restart_clean)
+        self.should_exit_for_game = True
 
     def draw(self, screen: pygame.Surface) -> None:
         screen.fill(theme.COLOR_BG)

@@ -25,8 +25,19 @@ try:
 except Exception:
     volume = None
 
+try:
+    from PIL import Image, ImageDraw, ImageFont
+    _HAS_PIL = True
+except ImportError:
+    _HAS_PIL = False
+
 ROMS_DIR = os.path.expanduser("~/arcade/roms")
 NATIVE_DIR = os.path.expanduser("~/arcade/native")
+CORE_DIR = os.path.dirname(os.path.abspath(__file__))
+if not os.path.exists(os.path.join(CORE_DIR, "wine_run.sh")):
+    _alt_core = os.path.expanduser("~/.emulador/arcade_core")
+    if os.path.exists(os.path.join(_alt_core, "wine_run.sh")):
+        CORE_DIR = _alt_core
 
 # Catálogo oficial de juegos (Obras maestras históricas + PC Nativo + Clásicos Capcom)
 GAMES = [
@@ -42,7 +53,7 @@ GAMES = [
         "genre": "FPS Legendario",
         "cmd": ["crispy-doom", "-iwad", os.path.join(NATIVE_DIR, "doom/DOOM.WAD"), "-fullscreen"],
         "desc": "La obra maestra que revolucionó los videojuegos de PC y tema del documental insignia de Ahoy ('DOOM: The Fake 3D Cult'). Laberintos viscerales, hordas demoníacas y código C ultrarrápido sin emular hardware.",
-        "controls": "Mover: WASD | Girar: Ratón o Flechas | Disparo: Ctrl Izq / Clic Izq / Espacio | Armas: 1-7 | Mando: Sticks + Gatillos",
+        "controls": "Mando: Stick Izq Mover/Strafe | Stick Der Girar | RT Disparar | Botón A Usar | B Correr | LB/RB Armas | Select Mapa",
     },
     {
         "id": "doom2",
@@ -53,7 +64,7 @@ GAMES = [
         "genre": "FPS Clásico",
         "cmd": ["crispy-doom", "-iwad", os.path.join(NATIVE_DIR, "doom/DOOM2.WAD"), "-fullscreen"],
         "desc": "La invasión llega a la Tierra. La icónica Super Shotgun de dos cañones, 30 mapas colosales y la cúspide de la era dorada de los 90 a 60 FPS nativos a 1080p.",
-        "controls": "Mover: WASD | Girar: Ratón o Flechas | Disparo: Ctrl Izq / Clic Izq / Espacio | Armas: 1-7 | Mando: Sticks + Gatillos",
+        "controls": "Mando: Stick Izq Mover/Strafe | Stick Der Girar | RT Disparar | Botón A Usar | B Correr | LB/RB Armas | Select Mapa",
     },
     {
         "id": "prince_of_persia",
@@ -151,11 +162,95 @@ GAMES = [
         "year": "1998",
         "dev": "Pyro Studios / Eidos Interactive",
         "genre": "Táctica en Tiempo Real",
-        "cmd": [os.path.join(NATIVE_DIR, "commandos/launch.sh")],
+        "cmd": [
+            os.path.join(CORE_DIR, "wine_run.sh"),
+            os.path.join(NATIVE_DIR, "commandos/WARGAME.EXE"),
+            "win98",
+        ],
         "cwd": os.path.join(NATIVE_DIR, "commandos"),
         "desc": "La legendaria obra maestra de Pyro Studios. Lidera a un grupo de 6 comandos aliados (Boina Verde, Francotirador, Marine, Zapador, Conductor y Espía) infiltrándote en misiones tácticas tras las líneas del Eje durante la Segunda Guerra Mundial.",
         "controls": "Ratón: Seleccionar comandos, mover e interactuar | Teclado: 1-6 Selección, G Pistola, K Cuchillo, H Ver cono | Menú: Tecla ESC",
     },
+    {
+        "id": "aoe_ror",
+        "title": "Age of Empires: The Rise of Rome",
+        "system": "PC Nativo",
+        "year": "1998",
+        "dev": "Ensemble Studios / Microsoft",
+        "genre": "Estrategia en Tiempo Real (RTS)",
+        "cmd": [
+            os.path.join(CORE_DIR, "wine_run.sh"),
+            os.path.join(NATIVE_DIR, "aoe/EMPIRESX.EXE"),
+            "win98",
+        ],
+        "cwd": os.path.join(NATIVE_DIR, "aoe"),
+        "desc": "La expansión definitiva del legendario RTS histórico de Ensemble Studios. Conduce a Roma, Palmira, Macedonia y Cartago desde la Edad de Piedra hasta el esplendor del Imperio Romano con nuevas unidades como el Elefante de Guerra y catapultas pesadas.",
+        "controls": "Ratón: Seleccionar aldeanos/ejército, construir y ordenar ataque | Teclado: Accesos directos y grupos de control (Ctrl+1-9) | Menú: F10",
+    },
+    {
+        "id": "aoe2_tc",
+        "title": "Age of Empires II: The Conquerors",
+        "system": "PC Nativo",
+        "year": "2000",
+        "dev": "Ensemble Studios / Microsoft",
+        "genre": "Estrategia en Tiempo Real (RTS)",
+        "cmd": [
+            os.path.join(CORE_DIR, "wine_run.sh"),
+            os.path.join(NATIVE_DIR, "aoe2/age2_x1.exe"),
+            "win98",
+        ],
+        "cwd": os.path.join(NATIVE_DIR, "aoe2"),
+        "desc": "La cúspide indiscutible de la estrategia en tiempo real medieval. Añade civilizaciones icónicas como los Españoles, Mayas, Hunos, Aztecas y Coreanos, además de las campañas legendarias de El Cid, Atila el Huno y Moctezuma.",
+        "controls": "Ratón: Seleccionar unidades, crear formaciones y recolectar recursos | Teclado: Grupos (Ctrl+1-9), ir al centro urbano (H) | Menú: F10",
+    },
+    {
+        "id": "angrybirds_sw2",
+        "title": "Angry Birds Star Wars II",
+        "system": "PC Nativo",
+        "year": "2013",
+        "dev": "Rovio Entertainment / Lucasfilm",
+        "genre": "Física y Puzles / Estrategia",
+        "cmd": [
+            os.path.join(CORE_DIR, "wine_run.sh"),
+            os.path.join(NATIVE_DIR, "angrybirds_starwars2/AngryBirdsStarWarsII.exe"),
+            "winxp",
+        ],
+        "cwd": os.path.join(NATIVE_DIR, "angrybirds_starwars2"),
+        "desc": "¡Únete a los pájaros o únete al lado porcino! Basado en las precuelas y la trilogía original de Star Wars, con más de 30 personajes jugables con sables láser y poderes de la Fuerza (Yoda, Darth Maul, Anakin, Boba Fett). Edición completa que incluye todos los capítulos hasta la versión 1.9.25.",
+        "controls": "Ratón: Arrastrar el tirachinas con Clic Izquierdo para apuntar y soltar | Clic en el aire: Activar poder de la Fuerza / sable láser | ESC: Menú",
+    },
+    {
+        "id": "evil_genius",
+        "title": "Evil Genius",
+        "system": "PC Nativo",
+        "year": "2004",
+        "dev": "Elixir Studios / Sierra Entertainment",
+        "genre": "Estrategia / Simulación y Gestión",
+        "cmd": [
+            os.path.join(CORE_DIR, "wine_run.sh"),
+            os.path.join(NATIVE_DIR, "evil_genius/ReleaseExe/EvilGeniusExeStub-Release.exe"),
+            "winxp",
+        ],
+        "cwd": os.path.join(NATIVE_DIR, "evil_genius/ReleaseExe"),
+        "desc": "Ponte en la piel de un supervillano al más puro estilo de las películas de espías de los 60 y 70. Construye tu base secreta en una isla desierta, entrena esbirros, coloca trampas mortales contra los agentes secretos de la justicia y organiza actos de infamia por todo el planeta para conseguir la dominación mundial.",
+        "controls": "Ratón: Seleccionar, construir y dar órdenes | Clic Derecho: Cámara y opciones | Teclado: WASD / Flechas para desplazar la cámara | Barra espaciadora: Pausa táctica",
+    },
+    {
+        "id": "xcom",
+        "title": "X-COM: UFO Defense",
+        "system": "PC Nativo",
+        "year": "1994",
+        "dev": "Mythos Games / MicroProse",
+        "genre": "Estrategia / Táctica por Turnos",
+        "cmd": [
+            os.path.join(CORE_DIR, "dosbox_run.sh"),
+            os.path.join(NATIVE_DIR, "xcom/dosbox.conf"),
+        ],
+        "cwd": os.path.join(NATIVE_DIR, "xcom"),
+        "desc": "La legendaria obra maestra de Julian Gollop que definió el género táctico. Dirige el proyecto multinacional secreto X-COM para proteger la Tierra de una invasión alienígena: detecta OVNIs e intercepta amenazas aéreas en el Geoscape, gestiona bases, investiga armamento extraterrestre y combate en tensas misiones tácticas por turnos en el Battlescape con niebla de guerra.",
+        "controls": "Ratón: Mover unidades, apuntar y seleccionar acciones en Geoscape/Battlescape | Teclado: 1-9 Accesos rápidos, Barra espaciadora: Siguiente unidad | Menú / Salir: Tecla ESC",
+    },
+
 
     # =========================================================================
     # --- SUPER NINTENDO (SNES) ---
@@ -599,6 +694,211 @@ def get_game_autosave(game):
     return None
 
 
+# ---------------------------------------------------------------------------
+# RENDERIZADO DE CARÁTULA Y FICHA REAL EN FRAMEBUFFER (/dev/fb0)
+# Estilo Deportes TV / Plex
+# ---------------------------------------------------------------------------
+_FB_DEV = "/dev/fb0"
+_fb_geom = None
+_fb_last_rect = None
+_fb_cache = {}
+
+_FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+_FONT_REG = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+COVERS_DIR = os.path.expanduser("~/.emulador/cache/covers")
+
+
+def _fb_geometry():
+    global _fb_geom
+    if _fb_geom is None:
+        try:
+            with open("/sys/class/graphics/fb0/virtual_size") as f:
+                fbw, fbh = (int(v) for v in f.read().strip().split(","))
+            with open("/sys/class/graphics/fb0/bits_per_pixel") as f:
+                bpp = int(f.read())
+            with open("/sys/class/graphics/fb0/stride") as f:
+                stride = int(f.read())
+            ok = (bpp == 32 and os.access(_FB_DEV, os.W_OK) and _HAS_PIL)
+            _fb_geom = (fbw, fbh, stride) if ok else False
+        except Exception:
+            _fb_geom = False
+    return _fb_geom
+
+
+def fb_available():
+    return bool(_fb_geometry())
+
+
+def get_game_cover(game):
+    gid = game.get("id", "")
+    for ext in [".png", ".jpg", ".jpeg", ".webp"]:
+        p = os.path.join(COVERS_DIR, f"{gid}{ext}")
+        if os.path.isfile(p):
+            return p
+    rom = game.get("rom")
+    if rom:
+        base = os.path.splitext(os.path.basename(rom))[0]
+        for ext in [".png", ".jpg", ".jpeg", ".webp"]:
+            p = os.path.join(COVERS_DIR, f"{base}{ext}")
+            if os.path.isfile(p):
+                return p
+    return None
+
+
+def _compose_game_panel(game, aw: int, ah: int) -> bytes:
+    """Compone póster real a la izquierda y ficha antialiasada a la derecha."""
+    lienzo = Image.new("RGB", (aw, ah), (13, 15, 24))
+    draw = ImageDraw.Draw(lienzo)
+
+    cover_path = get_game_cover(game)
+    poster = None
+    if cover_path:
+        try:
+            poster = Image.open(cover_path).convert("RGB")
+        except Exception:
+            poster = None
+
+    if poster is not None:
+        iw, ih = poster.size
+        esc = min((ah - 28) / ih, (aw * 0.38) / iw)
+        pw, ph = max(1, round(iw * esc)), max(1, round(ih * esc))
+        px = 14
+        py = (ah - ph) // 2
+        resized = poster.resize((pw, ph), Image.LANCZOS)
+        lienzo.paste(resized, (px, py))
+        draw.rectangle([px - 1, py - 1, px + pw, py + ph], outline=(0, 220, 255), width=2)
+    else:
+        pw = min(round(ah * 0.7), round(aw * 0.35))
+        px = 14
+        py = 14
+        draw.rectangle([px, py, px + pw, ah - 14], fill=(22, 25, 38), outline=(60, 70, 95), width=1)
+        f_ph = ImageFont.truetype(_FONT_BOLD if os.path.exists(_FONT_BOLD) else "DejaVuSans", 20)
+        draw.text((px + 20, ah // 2 - 10), "[ SIN CARÁTULA ]", fill=(120, 130, 150), font=f_ph)
+
+    # Tipografías
+    f_bold = ImageFont.truetype(_FONT_BOLD, 26) if os.path.exists(_FONT_BOLD) else ImageFont.load_default()
+    f_sub = ImageFont.truetype(_FONT_BOLD, 17) if os.path.exists(_FONT_BOLD) else ImageFont.load_default()
+    f_reg = ImageFont.truetype(_FONT_REG, 16) if os.path.exists(_FONT_REG) else ImageFont.load_default()
+    f_sm = ImageFont.truetype(_FONT_REG, 14) if os.path.exists(_FONT_REG) else ImageFont.load_default()
+
+    ix = px + pw + 25
+    info_w = max(100, aw - ix - 16)
+    y = 16
+
+    # 1. Título
+    title = game.get("title", "")
+    draw.text((ix, y), title[:65], fill=(255, 255, 255), font=f_bold)
+    y += 34
+
+    # 2. Metadatos
+    sys_str = game.get("system", "")
+    year_str = game.get("year", "")
+    dev_str = game.get("dev", "")
+    draw.text((ix, y), f"{sys_str}  ·  {year_str}  ·  {dev_str}"[:75], fill=(0, 220, 255), font=f_sub)
+    y += 26
+
+    # 3. Badge Rendimiento / Género
+    perf_badge = "★ 60 FPS Bloqueados  ·  Cero Emulación" if sys_str == "PC Nativo" else "★ 60 FPS  ·  Mednafen KMSDRM  ·  Autosave"
+    bw = min(info_w, int(draw.textlength(perf_badge, font=f_sm) + 24))
+    draw.rounded_rectangle([ix, y, ix + bw, y + 22], radius=4, fill=(24, 30, 48), outline=(255, 210, 60))
+    draw.text((ix + 12, y + 3), perf_badge, fill=(255, 210, 60), font=f_sm)
+    y += 32
+
+    # Línea divisoria
+    draw.line([(ix, y), (aw - 16, y)], fill=(45, 55, 80), width=1)
+    y += 10
+
+    # 4. Sinopsis / Historia (wrap)
+    desc = game.get("desc", "")
+    words = desc.split()
+    lines, cur = [], ""
+    for w in words:
+        test = (cur + " " + w).strip()
+        if draw.textlength(test, font=f_reg) <= info_w:
+            cur = test
+        else:
+            lines.append(cur)
+            cur = w
+    if cur:
+        lines.append(cur)
+
+    # Dibujar hasta 5-6 líneas
+    max_desc_lines = max(2, min(5, (ah - y - 70) // 22))
+    for l in lines[:max_desc_lines]:
+        draw.text((ix, y), l, fill=(215, 220, 230), font=f_reg)
+        y += 22
+
+    # 5. Caja de Mandos
+    y_ctrl = max(y + 8, ah - 58)
+    ctrl_text = game.get("controls", "")
+    draw.rounded_rectangle([ix, y_ctrl, aw - 16, ah - 8], radius=6, fill=(18, 22, 34), outline=(0, 220, 255))
+    draw.text((ix + 10, y_ctrl + 4), "MANDOS (Mando ShanWan / USB / Teclado):", fill=(255, 210, 60), font=f_sm)
+    draw.text((ix + 10, y_ctrl + 24), ctrl_text[:85], fill=(255, 255, 255), font=f_sm)
+
+    return lienzo.tobytes("raw", "BGRX")
+
+
+def fb_draw_panel(game, col: int, row: int, ncols: int, nrows: int, term_cols: int, term_rows: int) -> bool:
+    global _fb_last_rect
+    geom = _fb_geometry()
+    if not geom or game is None:
+        return False
+    fbw, fbh, stride = geom
+    cell_w = max(1, fbw // max(1, term_cols))
+    cell_h = max(1, fbh // max(1, term_rows))
+    x0, y0 = col * cell_w, row * cell_h
+    aw = min(ncols * cell_w, fbw - x0)
+    ah = min(nrows * cell_h, fbh - y0)
+    if aw <= 60 or ah <= 60:
+        return False
+
+    key = (game.get("id", ""), aw, ah)
+    raw = _fb_cache.get(key)
+    if raw is None:
+        try:
+            raw = _compose_game_panel(game, aw, ah)
+        except Exception:
+            return False
+        if len(_fb_cache) > 20:
+            _fb_cache.clear()
+        _fb_cache[key] = raw
+
+    try:
+        fd = os.open(_FB_DEV, os.O_WRONLY)
+        try:
+            fila = aw * 4
+            for y in range(ah):
+                os.pwrite(fd, raw[y * fila : (y + 1) * fila], (y0 + y) * stride + x0 * 4)
+        finally:
+            os.close(fd)
+    except Exception:
+        return False
+
+    _fb_last_rect = (x0, y0, aw, ah)
+    return True
+
+
+def fb_clear():
+    global _fb_last_rect
+    rect = _fb_last_rect
+    _fb_last_rect = None
+    geom = _fb_geometry()
+    if not rect or not geom:
+        return
+    x0, y0, aw, ah = rect
+    _, _, stride = geom
+    negro = bytes(aw * 4)
+    try:
+        fd = os.open(_FB_DEV, os.O_WRONLY)
+        try:
+            for y in range(ah):
+                os.pwrite(fd, negro, (y0 + y) * stride + x0 * 4)
+        finally:
+            os.close(fd)
+    except Exception:
+        pass
+
+
 def launch_retro_game(stdscr, game):
     """Lanza el juego en Mednafen o motor nativo de PC por KMSDRM/ALSA."""
     is_native = (game.get("system") == "PC Nativo")
@@ -615,6 +915,9 @@ def launch_retro_game(stdscr, game):
         time.sleep(0.35)
     subprocess.run(["killall", "-9", "aplay"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
+    # Limpiar panel de imagen antes de ceder la pantalla al juego
+    fb_clear()
+
     # Suspender curses completamente para ceder la pantalla al juego
     curses.def_prog_mode()
     curses.endwin()
@@ -624,10 +927,31 @@ def launch_retro_game(stdscr, game):
         env["SDL_VIDEODRIVER"] = "kmsdrm"
     env.pop("SDL_AUDIODRIVER", None)
 
+    # Inyectar mapeo estándar de mando ShanWan para motores SDL2
+    env["SDL_GAMECONTROLLERCONFIG"] = (
+        "03008dbf632500007505000011010000,ShanWan Gamepad,"
+        "platform:Linux,"
+        "a:b0,b:b1,x:b3,y:b4,"
+        "back:b10,start:b11,guide:b12,"
+        "leftshoulder:b6,rightshoulder:b7,"
+        "lefttrigger:b8,righttrigger:b9,"
+        "leftx:a0,lefty:a1,rightx:a2,righty:a3,"
+        "dpup:h0.1,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,"
+    )
+
     try:
         if is_native:
             cmd = game["cmd"]
             cwd = game.get("cwd", None)
+
+            native_script = "/home/jcgar/arcade/apply_native_gamepad_config.py"
+            if os.path.exists(native_script):
+                subprocess.run(
+                    [sys.executable, native_script, game.get("id", "")],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+
             subprocess.run(cmd, env=env, cwd=cwd)
         else:
             # Mednafen toma control exclusivo de la GPU/DRM y audio con SDL, autosave instantáneo
@@ -908,76 +1232,72 @@ def arcade_main(stdscr):
                 pass
 
         # Columna Derecha: Tarjeta / Ficha del Juego
+        has_fb = fb_available()
         if filtered_games:
             cur_game = filtered_games[selected_idx]
             card_x = split_x + 3
             card_w = max_x - card_x - 3
-            cy = content_y
+            card_y = content_y
+            card_h = content_h
 
-            try:
-                # Título y Sistema
-                title_line = f"★ {cur_game['title']} ★"
-                stdscr.addstr(cy, card_x, title_line[:card_w], curses.color_pair(4) | curses.A_BOLD)
-                cy += 1
+            if not has_fb:
+                cy = content_y
+                try:
+                    # Título y Sistema
+                    title_line = f"★ {cur_game['title']} ★"
+                    stdscr.addstr(cy, card_x, title_line[:card_w], curses.color_pair(4) | curses.A_BOLD)
+                    cy += 1
 
-                meta_line = f"Sistema: {cur_game['system']}   Año: {cur_game['year']}   Desarrollador: {cur_game['dev']}"
-                stdscr.addstr(cy, card_x, meta_line[:card_w], curses.color_pair(3))
-                cy += 2
-
-                # Recuadro de rendimiento
-                perf_box = "╔═ RENDIMIENTO EN TU CELERON ═════════════════════════════════╗"
-                if cur_game.get("system") == "PC Nativo":
-                    perf_txt = "║  Carga CPU: < 3%  |  Motor Nativo Linux  |  Sin emulación   ║"
-                else:
-                    perf_txt = "║  Carga CPU: < 2%  |  60 FPS Bloqueados  |  Sin calor/ruido  ║"
-                perf_end = "╚══════════════════════════════════════════════════════════════╝"
-                stdscr.addstr(cy, card_x, perf_box[:card_w], curses.color_pair(4))
-                cy += 1
-                stdscr.addstr(cy, card_x, perf_txt[:card_w], curses.color_pair(4) | curses.A_BOLD)
-                cy += 1
-                stdscr.addstr(cy, card_x, perf_end[:card_w], curses.color_pair(4))
-                cy += 2
-
-                # Sinopsis
-                stdscr.addstr(cy, card_x, "HISTORIA Y DETALLES:", curses.color_pair(1) | curses.A_BOLD)
-                cy += 1
-                # Envolver texto en varias líneas
-                words = cur_game["desc"].split()
-                line = ""
-                for w in words:
-                    if len(line) + len(w) + 1 < card_w - 2:
-                        line += (" " if line else "") + w
-                    else:
-                        stdscr.addstr(cy, card_x, line, curses.color_pair(2))
-                        cy += 1
-                        line = w
-                if line:
-                    stdscr.addstr(cy, card_x, line, curses.color_pair(2))
+                    meta_line = f"Sistema: {cur_game['system']}   Año: {cur_game['year']}   Desarrollador: {cur_game['dev']}"
+                    stdscr.addstr(cy, card_x, meta_line[:card_w], curses.color_pair(3))
                     cy += 2
 
-                # Mandos y Atajos
-                stdscr.addstr(cy, card_x, "MANDOS (Mando USB/ShanWan o Teclado):", curses.color_pair(3) | curses.A_BOLD)
-                cy += 1
-                stdscr.addstr(cy, card_x, cur_game["controls"][:card_w], curses.A_BOLD)
-                cy += 2
+                    # Recuadro de rendimiento
+                    perf_box = "╔═ RENDIMIENTO EN TU CELERON ═════════════════════════════════╗"
+                    if cur_game.get("system") == "PC Nativo":
+                        perf_txt = "║  Carga CPU: < 3%  |  Motor Nativo Linux  |  Sin emulación   ║"
+                    else:
+                        perf_txt = "║  Carga CPU: < 2%  |  60 FPS Bloqueados  |  Sin calor/ruido  ║"
+                    perf_end = "╚══════════════════════════════════════════════════════════════╝"
+                    stdscr.addstr(cy, card_x, perf_box[:card_w], curses.color_pair(4))
+                    cy += 1
+                    stdscr.addstr(cy, card_x, perf_txt[:card_w], curses.color_pair(4) | curses.A_BOLD)
+                    cy += 1
+                    stdscr.addstr(cy, card_x, perf_end[:card_w], curses.color_pair(4))
+                    cy += 2
 
-                stdscr.addstr(cy, card_x, "ATAJOS DENTRO DEL JUEGO:", curses.color_pair(5) | curses.A_BOLD)
-                cy += 1
-                stdscr.addstr(cy, card_x, "• Salir: Mantén pulsada Q durante 1 segundo", curses.color_pair(4) | curses.A_BOLD)
-                cy += 1
-                if cur_game.get("system") == "PC Nativo":
-                    stdscr.addstr(cy, card_x, "• Guardado: Menú propio del juego (F2/F5 Guardar / F3/F7 Cargar)", curses.A_NORMAL)
+                    # Sinopsis
+                    stdscr.addstr(cy, card_x, "HISTORIA Y DETALLES:", curses.color_pair(1) | curses.A_BOLD)
                     cy += 1
-                    stdscr.addstr(cy, card_x, "• Volumen: Teclas +/- o botones K400 | Mando: SELECT + R1/L1", curses.A_NORMAL)
-                else:
-                    stdscr.addstr(cy, card_x, "• Guardado: ¡Automático al salir con Q! Al volver, sigues donde lo dejaste", curses.A_NORMAL)
-                    cy += 1
-                    stdscr.addstr(cy, card_x, "• Volumen: Teclas +/- o botones K400 | Mando: SELECT + R1/L1", curses.A_NORMAL)
-                    cy += 1
-                    stdscr.addstr(cy, card_x, "• Guardado manual: F5 (Guardar) / F7 (Cargar punto)", curses.A_DIM)
+                    words = cur_game["desc"].split()
+                    line = ""
+                    for w in words:
+                        if len(line) + len(w) + 1 < card_w - 2:
+                            line += (" " if line else "") + w
+                        else:
+                            stdscr.addstr(cy, card_x, line, curses.color_pair(2))
+                            cy += 1
+                            line = w
+                    if line:
+                        stdscr.addstr(cy, card_x, line, curses.color_pair(2))
+                        cy += 2
 
-            except curses.error:
-                pass
+                    # Mandos y Atajos
+                    stdscr.addstr(cy, card_x, "MANDOS (Mando USB/ShanWan o Teclado):", curses.color_pair(3) | curses.A_BOLD)
+                    cy += 1
+                    stdscr.addstr(cy, card_x, cur_game["controls"][:card_w], curses.A_BOLD)
+                    cy += 2
+
+                    stdscr.addstr(cy, card_x, "ATAJOS DENTRO DEL JUEGO:", curses.color_pair(5) | curses.A_BOLD)
+                    cy += 1
+                    stdscr.addstr(cy, card_x, "• Salir: Mantén pulsada Q durante 1 segundo", curses.color_pair(4) | curses.A_BOLD)
+                    cy += 1
+                    if cur_game.get("system") == "PC Nativo":
+                        stdscr.addstr(cy, card_x, "• Guardado: Menú propio del juego (F2/F5 Guardar / F3/F7 Cargar)", curses.A_NORMAL)
+                    else:
+                        stdscr.addstr(cy, card_x, "• Guardado: ¡Automático al salir con Q! Al volver, sigues donde lo dejaste", curses.A_NORMAL)
+                except curses.error:
+                    pass
 
         # Barra de Estado Inferior Recreativa con indicador de Volumen
         footer_y = max_y - 2
@@ -991,12 +1311,17 @@ def arcade_main(stdscr):
 
         stdscr.refresh()
 
+        # Dibuja la carátula y ficha gráfica sobre /dev/fb0 si está disponible
+        if filtered_games and has_fb:
+            fb_draw_panel(cur_game, card_x, card_y, card_w, card_h, max_x, max_y)
+
         # Manejo de teclas reactivo (espera hasta 400ms o despierta al instante al pulsar teclado o mando)
         key = poll_input(stdscr)
         if key == -1 or key is None:
             continue
 
         if key in [ord("q"), ord("Q"), 27]: # ESC o Q
+            fb_clear()
             break
         elif key in [curses.KEY_UP, ord("w"), ord("W")]:
             if selected_idx > 0:
@@ -1055,6 +1380,7 @@ def main():
     try:
         curses.wrapper(arcade_main)
     finally:
+        fb_clear()
         if volume:
             volume.stop_listener()
             volume.reset_to_100()

@@ -79,6 +79,7 @@ GAME_BOXARTS = {
     "tentacle": f"{BASE_THUMB}/DOS/master/Named_Boxarts/Maniac%20Mansion%20-%20Day%20of%20the%20Tentacle%20(1993).png",
     "atlantis": f"{BASE_THUMB}/DOS/master/Named_Boxarts/Indiana%20Jones%20and%20the%20Fate%20of%20Atlantis%20(1992).png",
     "samnmax": f"{BASE_THUMB}/DOS/master/Named_Boxarts/Sam%20%26%20Max%20Hit%20the%20Road%20(1993).png",
+    "angrybirds_sw2": "https://upload.wikimedia.org/wikipedia/en/d/d4/Angry_Birds_Star_Wars_II.png",
 }
 
 

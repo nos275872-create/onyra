@@ -1,0 +1,1 @@
+/home/jcgar/.emulador/AGENTS.md

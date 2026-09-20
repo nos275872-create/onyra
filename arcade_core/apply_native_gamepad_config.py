@@ -60,31 +60,44 @@ def configure_crispy_doom():
     # default.cfg: activación de joystick y acciones base
     default_settings = {
         "use_joystick": 1,
-        "joyb_fire": 0,       # Botón A (Sur) -> Disparar
-        "joyb_strafe": -1,    # Strafe en botones dedicados (LB/RB)
-        "joyb_use": 3,        # Botón X (Oeste) -> Abrir puertas / Usar
-        "joyb_speed": 1,      # Botón B -> Correr turbo (mantener)
+        "joyb_fire": 9,       # RT (Gatillo Derecho) -> Disparar
+        "joyb_strafe": -1,
+        "joyb_use": 0,        # Botón A (Sur) -> Abrir puertas / Usar
+        "joyb_speed": 1,      # Botón B (Este) -> Correr / Sprint
         "joyb_jump": -1,
     }
     update_crispy_config(default_cfg, default_settings)
 
-    # crispy-doom.cfg: ejes analógicos y asignación de botones extendidos
+    # crispy-doom.cfg: ejes analógicos modernos y asignación de botones extendidos
     crispy_settings = {
-        "joystick_index": 0,
-        "joystick_x_axis": 0,              # Stick izq X -> Girar izq/der
-        "joystick_x_invert": 0,
-        "joystick_y_axis": 1,              # Stick izq Y -> Mover adelante/atrás
-        "joystick_y_invert": 0,
-        "joystick_turn_sensitivity": 12,
-        "joystick_move_sensitivity": 10,
-        "joyb_strafeleft": 6,              # LB -> Strafe izquierda
-        "joyb_straferight": 7,             # RB -> Strafe derecha
-        "joyb_nextweapon": 9,              # RT -> Cambiar arma siguiente
-        "joyb_prevweapon": 8,              # LT -> Cambiar arma anterior
-        "joyb_toggle_automap": 10,         # Select/Back -> Ver mapa
-        "joyb_menu_activate": 11,          # Start -> Menú
+        "use_joystick": 1,
         "use_analog": 1,
         "use_gamepad": 0,
+        "joystick_index": 0,
+        "joystick_guid": "",
+        "joystick_y_axis": 1,              # Stick Izq Vertical -> Mover adelante/atrás
+        "joystick_y_invert": 0,
+        "joystick_strafe_axis": 0,         # Stick Izq Horizontal -> Strafe lateral
+        "joystick_strafe_invert": 0,
+        "joystick_x_axis": 2,              # Stick Der Horizontal -> Girar cámara izq/der
+        "joystick_x_invert": 0,
+        "joystick_look_axis": -1,
+        "joystick_turn_sensitivity": 16,
+        "joystick_move_sensitivity": 12,
+        "joystick_strafe_dead_zone": 20,
+        "joystick_x_dead_zone": 20,
+        "joystick_y_dead_zone": 20,
+        "joyb_fire": 9,                    # RT -> Disparar
+        "joyb_use": 0,                     # Botón A -> Abrir puertas / Usar
+        "joyb_speed": 1,                   # Botón B -> Correr / Sprint
+        "joyb_prevweapon": 6,              # LB -> Arma anterior
+        "joyb_nextweapon": 7,              # RB -> Arma siguiente
+        "joyb_toggle_automap": 10,         # Select/Back -> Ver mapa
+        "joyb_menu_activate": 11,          # Start -> Menú
+        "joyb_strafe": -1,
+        "joyb_strafeleft": -1,
+        "joyb_straferight": -1,
+        "joyb_jump": -1,
     }
     update_crispy_config(crispy_cfg, crispy_settings)
 

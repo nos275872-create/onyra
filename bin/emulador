@@ -1,8 +1,9 @@
 #!/bin/bash
 # ONYRA - Luxury Retro Gaming Experience
-# Lanzador compatible con terminal truecolor, consola KMSDRM y HDMI
+# Lanzador desacoplado: ONYRA corre como menú limpio, se cierra completamente al
+# lanzar un juego (liberando DRM, memoria y CPU al 100%), y al terminar el juego
+# vuelve a abrir ONYRA automáticamente en el menú.
 
-# Exportar controladores de bajo nivel para SDL si no hay servidor X
 if [ -z "$DISPLAY" ]; then
     export SDL_VIDEODRIVER=kmsdrm
 fi
@@ -12,16 +13,53 @@ cd /home/jcgar/.emulador || exit 1
 # Volumen inicial de hardware al 65% (sin persistencia)
 amixer set Master 65% unmute >/dev/null 2>&1 || true
 
-# Ejecutar ONYRA en su entorno virtual optimizado
-/home/jcgar/.emulador/venv/bin/python /home/jcgar/.emulador/app.py
+SKIP_BOOT=""
+LAUNCH_FILE="/home/jcgar/.emulador/next_launch.json"
+rm -f "$LAUNCH_FILE"
 
-# Al salir: limpieza absoluta de recursos y restauración de terminal
+while true; do
+    # 1. Ejecutar menú visual de ONYRA
+    /home/jcgar/.emulador/venv/bin/python /home/jcgar/.emulador/app.py $SKIP_BOOT
+    EXIT_CODE=$?
+
+    # 2. Si no hay petición de juego en cola, el usuario salió del menú
+    if [ ! -f "$LAUNCH_FILE" ]; then
+        break
+    fi
+
+    # 3. ONYRA se ha cerrado por completo (cero procesos Python, DRM libre al 100%).
+    # Lanzar el juego en proceso independiente con monitor de tecla Q (1s).
+    /home/jcgar/.emulador/venv/bin/python /home/jcgar/.emulador/launcher.py --run "$LAUNCH_FILE"
+    rm -f "$LAUNCH_FILE"
+
+    # 4. Al volver del juego, limpiar consola y saltar boot splash para volver directo al menú
+    sudo killall -9 Xorg 2>/dev/null || true
+    sudo rm -f /tmp/.X*-lock /tmp/.X11-unix/X* 2>/dev/null || true
+    sudo sh -c 'echo 0 > /sys/class/graphics/fb0/blank 2>/dev/null || true'
+    sudo chvt 1 2>/dev/null || true
+    sudo kbd_mode -u -f 2>/dev/null || true
+    stty sane 2>/dev/null || true
+    clear
+    SKIP_BOOT="--skip-boot"
+done
+
+# Al salir definitivamente de ONYRA:
 killall -9 mednafen 2>/dev/null || true
+wineserver -k 2>/dev/null || true
+sudo killall -9 Xorg 2>/dev/null || true
+sudo rm -f /tmp/.X*-lock /tmp/.X11-unix/X* 2>/dev/null || true
+
+# Restaurar framebuffer y forzar refresco del modo texto en la TV
+sudo sh -c 'echo 0 > /sys/class/graphics/fb0/blank 2>/dev/null || true'
+sudo chvt 2 2>/dev/null || true
+sleep 0.05
+sudo chvt 1 2>/dev/null || true
 sudo kbd_mode -u -f 2>/dev/null || true
 stty sane 2>/dev/null || true
 amixer set Master 100% unmute >/dev/null 2>&1 || true
 clear
 tput cnorm 2>/dev/null || true
+printf "\033c\033[?25h" 2>/dev/null || true
 echo "ONYRA cerrado. Rendimiento liberado."
 echo "Para volver a jugar:  emulador"
 echo "Para volver a la TV:   deportes"

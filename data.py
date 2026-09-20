@@ -147,10 +147,36 @@ def get_catalog() -> Dict[str, List[Dict[str, Any]]]:
                 continue
         else:
             cmd = g.get("cmd", [])
-            if cmd and not os.path.exists(cmd[0]) and not os.path.exists(f"/usr/bin/{cmd[0]}"):
-                # Comprobar si existe en PATH
+            if not cmd:
+                continue
+            # Comprobar si el binario o script lanzador existe
+            launcher_bin = cmd[0]
+            if not os.path.exists(launcher_bin) and not os.path.exists(f"/usr/bin/{launcher_bin}"):
                 import shutil
-                if not shutil.which(cmd[0]):
+                if not shutil.which(launcher_bin):
+                    continue
+            # Si se lanza mediante wine_run.sh, verificar que el .exe existe en disco
+            if launcher_bin.endswith("wine_run.sh") and len(cmd) > 1:
+                exe_path = cmd[1]
+                exe_dir = os.path.dirname(exe_path)
+                exe_base = os.path.basename(exe_path)
+                exists = False
+                if os.path.exists(exe_path):
+                    exists = True
+                elif os.path.isdir(exe_dir):
+                    try:
+                        for f in os.listdir(exe_dir):
+                            if f.lower() == exe_base.lower() or (exe_base.lower() in ("wargame.exe", "comandos.exe") and f.lower() in ("wargame.exe", "comandos.exe", "commandos.exe")):
+                                exists = True
+                                break
+                    except Exception:
+                        pass
+                if not exists:
+                    continue
+            # Si se lanza mediante dosbox_run.sh, verificar que el .conf o directorio existe en disco
+            if launcher_bin.endswith("dosbox_run.sh") and len(cmd) > 1:
+                conf_path = cmd[1]
+                if not os.path.exists(conf_path):
                     continue
 
         # Mapear a sys_id

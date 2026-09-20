@@ -16,7 +16,7 @@ echo ""
 # 1. Comprobar paquetes del sistema
 echo "[1/5] Verificando dependencias del sistema..."
 MISSING_PKGS=()
-for pkg in python3 python3-venv python3-pip mednafen alsa-utils; do
+for pkg in python3 python3-venv python3-pip mednafen alsa-utils dosbox; do
     if ! dpkg -s "$pkg" >/dev/null 2>&1; then
         MISSING_PKGS+=("$pkg")
     fi
@@ -29,6 +29,16 @@ if [ ${#MISSING_PKGS[@]} -gt 0 ]; then
     sudo apt-get install -y -qq "${MISSING_PKGS[@]}"
 else
     echo "✓ Todas las dependencias del sistema están presentes."
+fi
+
+if [ "${1:-}" = "--with-wine" ]; then
+    echo "Instalando Wine y dependencias X11 (--with-wine)..."
+    sudo dpkg --add-architecture i386 || true
+    sudo apt-get update -qq
+    sudo apt-get install -y -qq wine wine32:i386 libwine:i386 xinit x11-xserver-utils kbd xserver-xorg-legacy
+    if [ ! -f /etc/X11/Xwrapper.config ] || ! grep -q "needs_root_rights=yes" /etc/X11/Xwrapper.config; then
+        echo -e "allowed_users=anybody\nneeds_root_rights=yes" | sudo tee /etc/X11/Xwrapper.config >/dev/null
+    fi
 fi
 
 # 2. Comprobar grupos de usuario (audio, video, input)
@@ -56,7 +66,13 @@ echo "[4/5] Configurando ejecutable de terminal 'emulador'..."
 mkdir -p "$HOME/.local/bin"
 cp -p "$SCRIPT_DIR/bin/emulador" "$HOME/.local/bin/emulador"
 chmod +x "$HOME/.local/bin/emulador"
-chmod +x "$SCRIPT_DIR/arcade_core/commandos_launch.sh" 2>/dev/null || true
+chmod +x "$SCRIPT_DIR/arcade_core/wine_run.sh" 2>/dev/null || true
+chmod +x "$SCRIPT_DIR/arcade_core/dosbox_run.sh" 2>/dev/null || true
+if [ -d "$HOME/arcade" ]; then
+    cp -p "$SCRIPT_DIR/arcade_core/arcade.py" "$HOME/arcade/arcade.py" 2>/dev/null || true
+    ln -sf "$SCRIPT_DIR/arcade_core/wine_run.sh" "$HOME/arcade/wine_run.sh" 2>/dev/null || true
+    ln -sf "$SCRIPT_DIR/arcade_core/dosbox_run.sh" "$HOME/arcade/dosbox_run.sh" 2>/dev/null || true
+fi
 
 # Asegurar ~/.local/bin en PATH
 if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then

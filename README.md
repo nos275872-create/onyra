@@ -71,7 +71,7 @@
 │   ├── apply_native_gamepad_config.py # Autoconfigurador de mando ShanWan para juegos de PC
 │   ├── mednafen_arcade.cfg    # Configuración de rendimiento de Mednafen
 │   ├── emulador.sh            # Lanzador auxiliar
-│   └── commandos_launch.sh    # Lanzador adaptativo para Commandos: Behind Enemy Lines
+│   └── wine_run.sh            # Lanzador genérico para juegos de PC / Wine
 │
 ├── old_textual/               # Versión histórica TUI (Textual) conservada como referencia
 │
@@ -149,13 +149,43 @@ Las ROMs y juegos nativos se organizan por defecto en `~/arcade/`:
 
 ---
 
-## 🎖️ Caso Especial: Commandos: Behind Enemy Lines
+## 🍷 Soporte e Integración de Juegos Windows (Wine)
 
-*Commandos: Behind Enemy Lines* (1998, Pyro Studios) está completamente integrado en el catálogo de PC Nativo con su carátula oficial y ficha técnica:
+ONYRA incluye integración nativa y genérica para juegos clásicos de Windows (PC Nativo) mediante `arcade_core/wine_run.sh`:
 
-1. El lanzador `arcade_core/commandos_launch.sh` verifica automáticamente la presencia del ejecutable (`WARGAME.EXE` o `comandos.exe`).
-2. Si se ejecuta desde la consola sin servidor X, lanza automáticamente una subsesión X11 mediante `xinit` con `wine` para garantizar máxima fluidez y compatibilidad.
-3. Para jugar, basta con colocar los archivos del juego en `~/arcade/native/commandos/` y tener instalado Wine (`sudo apt install wine`).
+1. **Gestión de prefijos aislados:** Agrupa juegos por época en `~/arcade/wine/<nombre_prefix>` (p. ej. `win98`), evitando duplicar gigabytes de librerías.
+2. **Subsesión X11 transparente:** Si se ejecuta desde consola TTY pura sin servidor X activo, lanza automáticamente una sesión dedicada mediante `xinit` a través del VT actual, con audio y gráficos directos.
+3. **Limpieza total:** Mata automáticamente `wineserver` al salir o al forzar la salida manteniendo pulsada la tecla `Q`.
+4. **Instalación de Wine:** Se puede instalar fácilmente ejecutando `./install.sh --with-wine` (o mediante `sudo apt install wine xinit`).
+
+---
+
+## ➕ Añadir un juego Wine nuevo
+
+Añadir cualquier juego de Windows al catálogo es trivial: solo requiere añadir una entrada en la lista `GAMES` de `arcade_core/arcade.py` siguiendo este patrón:
+
+```python
+{
+    "id": "<id_unico>",
+    "title": "<Título del juego>",
+    "system": "PC Nativo",
+    "year": "<año>",
+    "dev": "<desarrollador>",
+    "genre": "<género>",
+    "cmd": [
+        os.path.join(CORE_DIR, "wine_run.sh"),
+        os.path.join(NATIVE_DIR, "<carpeta>/<EJECUTABLE.exe>"),
+        "<nombre_prefix>",
+    ],
+    "cwd": os.path.join(NATIVE_DIR, "<carpeta>"),
+    "desc": "<descripción>",
+    "controls": "<controles>",
+},
+```
+
+* **Cero cambios de código:** No es necesario tocar ningún script ni modificar `launcher.py`, `app.py`, `input_manager.py` ni `data.py`.
+* **Colocación de archivos:** Copia los archivos del juego en `~/arcade/native/<carpeta>/`.
+* **Carátula (opcional):** Coloca una imagen en formato PNG en `cache/covers/<id_unico>.png`.
 
 ---
 
