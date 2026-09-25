@@ -28,15 +28,15 @@ from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
 # PALETA — copia aquí los valores EXACTOS de theme.py de ONYRA
 # ─────────────────────────────────────────────────────────────────────────────
 BG          = (8, 9, 13)
-PANEL       = (14, 17, 23)
+PANEL       = (14, 17, 22)
 PANEL_SEL   = (20, 26, 36)
-BORDER      = (38, 44, 58)      # COLOR_BORDER_INACTIVE
+BORDER      = (29, 36, 48)      # COLOR_BORDER_INACTIVE
 MINT        = (61, 255, 192)    # COLOR_MINT   #3DFFC0
-VIOLET      = (150, 120, 255)   # COLOR_VIOLET
+VIOLET      = (155, 123, 255)   # COLOR_VIOLET
 SHADOW      = (75, 58, 153)     # COLOR_SHADOW #4B3A99
-TEXT        = (232, 236, 244)   # COLOR_TEXT
-TEXT_DIM    = (128, 138, 156)   # COLOR_TEXT_DIM
-SYSTEM_DIM  = (86, 108, 102)    # COLOR_SYSTEM_DIM
+TEXT        = (232, 238, 242)   # COLOR_TEXT
+TEXT_DIM    = (122, 135, 148)   # COLOR_TEXT_DIM
+SYSTEM_DIM  = (58, 80, 88)      # COLOR_SYSTEM_DIM
 DANGER      = (255, 90, 120)
 
 LOGOS_DIR = os.path.expanduser("~/.emulador/cache/logos")

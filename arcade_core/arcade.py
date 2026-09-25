@@ -32,6 +32,7 @@ try:
 except Exception:
     volume = None
 
+
 try:
     from PIL import Image, ImageDraw, ImageFont
     _HAS_PIL = True
@@ -241,6 +242,38 @@ GAMES = [
         "cwd": os.path.join(NATIVE_DIR, "evil_genius/ReleaseExe"),
         "desc": "Ponte en la piel de un supervillano al más puro estilo de las películas de espías de los 60 y 70. Construye tu base secreta en una isla desierta, entrena esbirros, coloca trampas mortales contra los agentes secretos de la justicia y organiza actos de infamia por todo el planeta para conseguir la dominación mundial.",
         "controls": "Ratón: Seleccionar, construir y dar órdenes | Clic Derecho: Cámara y opciones | Teclado: WASD / Flechas para desplazar la cámara | Barra espaciadora: Pausa táctica",
+    },
+    {
+        "id": "battlefront2",
+        "title": "Star Wars: Battlefront II",
+        "system": "PC Nativo",
+        "year": "2005",
+        "dev": "Pandemic Studios / LucasArts",
+        "genre": "Acción / Disparos (FPS/TPS)",
+        "cmd": [
+            os.path.join(CORE_DIR, "wine_run.sh"),
+            os.path.join(NATIVE_DIR, "battlefront2/BattlefrontII.exe"),
+            "winxp",
+        ],
+        "cwd": os.path.join(NATIVE_DIR, "battlefront2"),
+        "desc": "La aclamada obra cumbre de los juegos de acción bélica de Star Wars. Lidera a la legendaria Legión 501 a lo largo de la galaxia en batallas masivas terrestres y espaciales durante las Guerras Clon y la Guerra Civil Galáctica. Controla soldados, pilotos, vehículos icónicos (AT-AT, cazas X-Wing y TIE) y empuña sables láser como héroes y villanos (Darth Vader, Luke Skywalker, Yoda, Boba Fett).",
+        "controls": "Teclado: WASD Mover, Espacio Saltar, C Agacharse, R Recargar, E Entrar vehículo | Ratón: Apuntar y Disparar | ESC: Menú",
+    },
+    {
+        "id": "startopia",
+        "title": "StarTopia",
+        "system": "PC Nativo",
+        "year": "2001",
+        "dev": "Mucky Foot Productions / Eidos Interactive",
+        "genre": "Estrategia / Simulación Espacial",
+        "cmd": [
+            os.path.join(CORE_DIR, "wine_run.sh"),
+            os.path.join(NATIVE_DIR, "startopia/startopia.exe"),
+            "win98",
+        ],
+        "cwd": os.path.join(NATIVE_DIR, "startopia"),
+        "desc": "Aclamada joya de la estrategia y simulación creada por veteranos de Bullfrog. Gestiona y reconstruye colosales estaciones espaciales toroidales divididas en tres cubiertas (Ingeniería, Ocio y Bio-cubierta). Atrae, cuida y satisface a diversas razas alienígenas mientras equilibras la economía, la investigación y la defensa ante amenazas galácticas. Incluye textos y voces dobladas al español.",
+        "controls": "Ratón: Seleccionar, construir y rotar cámara (Rueda/Botón Central) | Teclado: Flechas/WASD para mover vista | 1-3: Cambiar de cubierta | Espacio: Pausa | ESC: Menú",
     },
     {
         "id": "xcom",
@@ -966,6 +999,8 @@ def _force_kill(proc: subprocess.Popen, is_wine_or_dos: bool) -> None:
         subprocess.run(["sudo", "killall", "-9", "Xorg"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.run(["sudo", "pkill", "-9", "-f", "Xorg"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.run(["sudo", "rm", "-f", "/tmp/.X1-lock", "/tmp/.X2-lock", "/tmp/.X11-unix/X1", "/tmp/.X11-unix/X2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["sudo", "chvt", "1"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        os.system("sudo sh -c 'echo 0 > /sys/class/graphics/fb0/blank 2>/dev/null || true'")
 
 
 def _watch_process_and_q_key(proc: subprocess.Popen, is_wine_or_dos: bool = False) -> None:
@@ -1109,8 +1144,8 @@ def launch_retro_game(stdscr, game):
         subprocess.run([sys.executable, "/home/jcgar/arcade/apply_input_config.py"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         if volume:
             volume.set_emulator_active(False)
-        # Restaurar modo de teclado del kernel y terminal
-        os.system("sudo kbd_mode -u -f 2>/dev/null; stty sane 2>/dev/null")
+        # Restaurar modo de teclado del kernel, VT y terminal
+        os.system("sudo chvt 1 2>/dev/null; sudo sh -c 'echo 0 > /sys/class/graphics/fb0/blank 2>/dev/null || true'; sudo kbd_mode -u -f 2>/dev/null; stty sane 2>/dev/null")
         curses.reset_prog_mode()
         stdscr.erase()
         stdscr.refresh()
@@ -1529,9 +1564,9 @@ def main():
         if volume:
             volume.stop_listener()
             volume.reset_to_100()
-        os.system("sudo kbd_mode -u -f 2>/dev/null; stty sane 2>/dev/null")
+        os.system("sudo chvt 1 2>/dev/null; sudo sh -c 'echo 0 > /sys/class/graphics/fb0/blank 2>/dev/null || true'; sudo kbd_mode -u -f 2>/dev/null; stty sane 2>/dev/null")
         # Asegurar reseteo de cursor y pantalla limpia
-        print("\033[?25h", end="") # Mostrar cursor
+        print("\033[?25h", end="")
         os.system("clear")
 
 
